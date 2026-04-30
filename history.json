@@ -1,0 +1,66 @@
+[
+  {
+    "date": "2026-04-30T06:22:16.508Z",
+    "user": "innocent@gmail.com",
+    "total": 1,
+    "sent": 1,
+    "failed": 0,
+    "delayMinutes": 1
+  },
+  {
+    "date": "2026-04-30T06:12:32.067Z",
+    "user": "innocent@gmail.com",
+    "total": 1,
+    "sent": 1,
+    "failed": 0,
+    "delayMinutes": 1
+  },
+  {
+    "date": "2026-04-30T06:11:44.909Z",
+    "user": "innocent@gmail.com",
+    "total": 1,
+    "sent": 1,
+    "failed": 0,
+    "delayMinutes": 1
+  },
+  {
+    "date": "2026-04-30T05:57:36.842Z",
+    "user": "innocent@gmail.com",
+    "total": 9,
+    "sent": 2,
+    "failed": 0,
+    "delayMinutes": 1
+  },
+  {
+    "date": "2026-04-30T05:47:42.584Z",
+    "user": "innocent@gmail.com",
+    "total": 9,
+    "sent": 1,
+    "failed": 0,
+    "delayMinutes": 1
+  },
+  {
+    "date": "2026-04-30T05:44:31.411Z",
+    "user": "innocent@gmail.com",
+    "total": 9,
+    "sent": 2,
+    "failed": 0,
+    "delayMinutes": 1
+  },
+  {
+    "date": "2026-04-30T05:21:42.243Z",
+    "user": "innocent@gmail.com",
+    "total": 9,
+    "sent": 2,
+    "failed": 0,
+    "delayMinutes": 1
+  },
+  {
+    "date": "2026-04-30T04:39:08.578Z",
+    "user": "innocent@gmail.com",
+    "total": 9,
+    "sent": 2,
+    "failed": 0,
+    "delayMinutes": 1
+  }
+]

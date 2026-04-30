@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp Dashboard - Sender</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <!-- Animated Mesh Background -->
+  <div class="mesh-bg">
+    <div class="mesh-blob blob-1"></div>
+    <div class="mesh-blob blob-2"></div>
+    <div class="mesh-blob blob-3"></div>
+  </div>
+
+  <div style="display: flex; justify-content: center; align-items: center; height: 100vh; width: 100vw; perspective: 1000px;">
+    
+    <div id="login-container" class="glass-panel" style="padding: 40px; width: 400px; position: relative; opacity: 0; transform: translateY(20px); transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+      
+      <!-- Auth Form -->
+      <div id="auth-form-view">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <div style="width: 56px; height: 56px; border-radius: 16px; background: rgba(99, 102, 241, 0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto; border: 1px solid rgba(99, 102, 241, 0.3);">
+            <i data-lucide="shield-check" color="var(--primary-color)" style="width: 28px; height: 28px;"></i>
+          </div>
+          <h2 id="auth-title" style="font-size: 24px; font-weight: 600; letter-spacing: -0.5px;">Welcome Back</h2>
+          <p id="auth-subtitle" style="color: var(--text-muted); font-size: 14px; margin-top: 5px;">Sign in to access your dashboard</p>
+        </div>
+
+        <form id="login-form" style="display: flex; flex-direction: column; gap: 16px;">
+          <div id="name-field-container" class="input-icon-wrapper" style="display: none;">
+            <i data-lucide="user"></i>
+            <input type="text" id="name-input" class="glass-input" placeholder="Full Name">
+          </div>
+          
+          <div class="input-icon-wrapper">
+            <i data-lucide="mail"></i>
+            <input type="email" id="username" class="glass-input" placeholder="Email Address" required>
+          </div>
+          
+          <div class="input-icon-wrapper">
+            <i data-lucide="lock"></i>
+            <input type="password" id="password" class="glass-input" placeholder="Password" required>
+          </div>
+
+          <button type="submit" id="auth-submit-btn" class="glass-btn primary" style="margin-top: 10px; width: 100%; padding: 12px;">
+            <i data-lucide="log-in" style="width: 18px; height: 18px;" id="auth-btn-icon"></i>
+            <span id="auth-btn-text">Sign In</span>
+          </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 24px;">
+          <button type="button" id="toggle-auth-btn" style="color: var(--text-muted); font-size: 14px; background: none; border: none; cursor: pointer; transition: color 0.2s;">Need an account? <span style="color: var(--primary-color); font-weight: 500;">Create one</span></button>
+        </div>
+      </div>
+
+      <!-- QR Code View -->
+      <div id="qr-view" style="display: none; text-align: center;">
+        <h2 style="font-size: 22px; font-weight: 600; margin-bottom: 8px;">Link Device</h2>
+        <p id="qr-status" style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Open WhatsApp and scan the code</p>
+        
+        <div style="background: #fff; padding: 16px; border-radius: 16px; display: inline-block; position: relative; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.2);">
+          
+          <div id="qr-loader" style="display: flex; justify-content: center; align-items: center; height: 180px; width: 180px;">
+            <i data-lucide="loader-2" color="#000" style="animation: spin 2s linear infinite; width: 32px; height: 32px;"></i>
+          </div>
+          
+          <img id="qr-image" src="" alt="WhatsApp QR Code" style="display: none; width: 180px; height: 180px; border-radius: 8px;">
+        </div>
+        
+        <p style="color: var(--text-dark); font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+          <i data-lucide="lock" style="width: 14px; height: 14px;"></i> End-to-end encrypted
+        </p>
+      </div>
+      
+    </div>
+  </div>
+
+  <style>
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+  </style>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/login.js"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

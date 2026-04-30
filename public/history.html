@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp Dashboard - History</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+  <!-- Animated Mesh Background -->
+  <div class="mesh-bg">
+    <div class="mesh-blob blob-1"></div>
+    <div class="mesh-blob blob-2"></div>
+    <div class="mesh-blob blob-3"></div>
+  </div>
+  
+  <div style="display: flex; flex-direction: column; min-height: 100vh; width: 100vw;">
+    
+    <!-- Top Navbar -->
+    <header class="glass-header" style="height: 64px; display: flex; align-items: center; padding: 0 24px; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <i data-lucide="message-circle" color="var(--primary-color)" style="width: 26px; height: 26px;"></i>
+        <h1 style="font-size: 18px; font-weight: 600; margin: 0; letter-spacing: -0.5px;">WA Bulk Sender</h1>
+      </div>
+
+      <nav style="display: flex; gap: 12px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 12px; border: 1px solid var(--glass-border);">
+        <a href="/dashboard" style="display: flex; align-items: center; gap: 8px; padding: 6px 16px; border-radius: 8px; color: var(--text-muted); font-weight: 500; font-size: 13px; transition: color 0.2s;">
+          <i data-lucide="send" style="width: 14px; height: 14px;"></i> Sender
+        </a>
+        <a href="/history" style="display: flex; align-items: center; gap: 8px; padding: 6px 16px; border-radius: 8px; color: #fff; background: rgba(15, 150, 156, 0.3); border: 1px solid rgba(15, 150, 156, 0.5); font-weight: 500; font-size: 13px;">
+          <i data-lucide="history" style="width: 14px; height: 14px;"></i> History
+        </a>
+      </nav>
+
+      <div style="display: flex; align-items: center; gap: 24px;">
+        <div style="display: flex; align-items: center; gap: 8px; color: var(--text-dark); font-size: 14px; font-weight: 500;">
+          <div style="background: rgba(255,255,255,0.1); padding: 4px; border-radius: 50%;"><i data-lucide="user" style="width: 14px; height: 14px;"></i></div>
+          <span id="user-display-name">Mahesh</span>
+        </div>
+        
+        <button id="disconnect-wa-btn" onclick="window.location.href='/'" style="display: flex; align-items: center; gap: 6px; background: transparent; border: none; color: var(--warning-color); cursor: pointer; font-size: 13px; font-weight: 500; padding: 0;">
+          <i data-lucide="wifi-off" style="width: 14px; height: 14px;"></i> Disconnect
+        </button>
+
+        <a href="/" style="display: flex; align-items: center; gap: 6px; color: var(--text-muted); font-size: 13px; font-weight: 500;">
+          <i data-lucide="log-out" style="width: 14px; height: 14px;"></i> Logout
+        </a>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main style="flex: 1; padding: 32px 24px; display: flex; flex-direction: column;">
+      <div style="width: 100%; max-width: 1600px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; flex: 1;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h2 style="font-size: 24px; font-weight: 600; display: flex; align-items: center; gap: 12px; letter-spacing: -0.5px;">
+            <div style="background: rgba(15, 150, 156, 0.2); padding: 8px; border-radius: 10px; border: 1px solid rgba(15, 150, 156, 0.3); display: flex;">
+              <i data-lucide="database" color="var(--primary-color)"></i>
+            </div>
+            Message History
+          </h2>
+          <div style="display: flex; gap: 12px;">
+            <button id="export-pdf-btn" class="glass-btn danger" style="background: rgba(244, 63, 94, 0.1); border-color: rgba(244, 63, 94, 0.3); color: #f43f5e;">
+              <i data-lucide="file-text" style="width: 16px; height: 16px;"></i> Export PDF
+            </button>
+            <button id="export-excel-btn" class="glass-btn success" style="background: rgba(109, 165, 192, 0.1); border-color: rgba(109, 165, 192, 0.3); color: var(--accent-color);">
+              <i data-lucide="file-spreadsheet" style="width: 16px; height: 16px;"></i> Export Excel
+            </button>
+            <button id="refresh-btn" class="glass-btn">
+              <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i> Refresh
+            </button>
+          </div>
+        </div>
+
+        <div class="glass-panel" style="padding: 16px; margin-bottom: 8px; display: flex; gap: 16px; align-items: center;">
+          <div class="input-icon-wrapper" style="flex: 1;">
+            <i data-lucide="search"></i>
+            <input type="text" id="search-input" class="glass-input" placeholder="Search by number..." style="width: 100%;">
+          </div>
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <select id="status-filter" class="glass-input" style="width: 140px; cursor: pointer;">
+              <option value="all" style="color: #000;">All Status</option>
+              <option value="sent" style="color: #000;">Sent</option>
+              <option value="failed" style="color: #000;">Failed</option>
+            </select>
+            <label style="display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 14px; cursor: pointer;">
+              <input type="checkbox" id="unique-filter" style="accent-color: var(--primary-color); width: 16px; height: 16px;"> Unique Numbers
+            </label>
+          </div>
+        </div>
+
+        <div class="glass-panel" style="overflow: auto; flex: 1;">
+          <table class="glass-table">
+            <thead>
+              <tr>
+                <th style="width: 50px;">#</th>
+                <th>PHONE NUMBER</th>
+                <th>MESSAGE</th>
+                <th style="width: 100px;">STATUS</th>
+                <th style="width: 180px;">DATE & TIME</th>
+                <th style="text-align: right; width: 120px;">ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody id="history-tbody">
+              <tr>
+                <td colspan="6" style="padding: 40px; text-align: center; color: var(--text-muted);">
+                  <i data-lucide="loader-2" class="spin" style="margin-bottom: 10px;"></i>
+                  <br>Loading history...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <style>
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    .spin { animation: spin 2s linear infinite; }
+  </style>
+  <script src="/js/history.js"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>
