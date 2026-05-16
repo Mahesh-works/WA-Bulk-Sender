@@ -1,0 +1,20 @@
+2026/05/08-20:28:11.160 4350 Reusing MANIFEST C:\Users\ASUS\Desktop\WA Automation\.wwebjs_session\session-innocent123_gmail_com\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2026/05/08-20:28:11.168 4350 Recovering log #12
+2026/05/08-20:28:11.181 4350 Reusing old log C:\Users\ASUS\Desktop\WA Automation\.wwebjs_session\session-innocent123_gmail_com\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000012.log 
+2026/05/08-20:28:28.219 42b8 Level-0 table #17: started
+2026/05/08-20:28:28.243 42b8 Level-0 table #17: 1270720 bytes OK
+2026/05/08-20:28:28.245 42b8 Delete type=0 #12
+2026/05/08-20:28:28.253 42b8 Compacting 1@1 + 1@2 files
+2026/05/08-20:28:28.342 42b8 Generated table #18@1: 50980 keys, 2166935 bytes
+2026/05/08-20:28:28.342 42b8 Compacted 1@1 + 1@2 files => 2166935 bytes
+2026/05/08-20:28:28.342 42b8 compacted to: files[ 0 0 1 0 0 0 0 ]
+2026/05/08-20:28:30.003 42b8 Level-0 table #20: started
+2026/05/08-20:28:30.035 42b8 Level-0 table #20: 995648 bytes OK
+2026/05/08-20:28:30.036 42b8 Delete type=2 #14
+2026/05/08-20:28:30.036 42b8 Delete type=0 #16
+2026/05/08-20:28:30.036 42b8 Delete type=2 #17
+2026/05/08-20:28:30.043 42b8 Compacting 1@1 + 1@2 files
+2026/05/08-20:28:30.141 42b8 Generated table #21@1: 51110 keys, 2211912 bytes
+2026/05/08-20:28:30.146 42b8 Generated table #22@1: 1146 keys, 43311 bytes
+2026/05/08-20:28:30.146 42b8 Compacted 1@1 + 1@2 files => 2255223 bytes
+2026/05/08-20:28:30.147 42b8 compacted to: files[ 0 0 2 0 0 0 0 ]

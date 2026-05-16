@@ -141,28 +141,60 @@ exportExcelBtn.addEventListener('click', () => {
 exportPdfBtn.addEventListener('click', () => {
   if(allMessages.length === 0) return alert('No data to export');
   
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
+  // Create a temporary container for html2pdf
+  const container = document.createElement('div');
+  container.style.padding = '20px';
+  container.style.fontFamily = 'sans-serif';
+  container.style.color = '#000';
   
-  doc.text("WA Message History", 14, 15);
-  
-  const tableData = allMessages.map((m, i) => [
-    i + 1,
-    m.phone,
-    m.message.length > 30 ? m.message.substring(0, 30) + '...' : m.message,
-    m.status,
-    new Date(m.date).toLocaleString()
-  ]);
+  const title = document.createElement('h2');
+  title.innerText = 'WA Message History';
+  title.style.marginBottom = '20px';
+  title.style.color = '#000';
+  container.appendChild(title);
 
-  doc.autoTable({
-    head: [['#', 'Phone Number', 'Message', 'Status', 'Date & Time']],
-    body: tableData,
-    startY: 20,
-    styles: { fontSize: 8 },
-    headStyles: { fillColor: [15, 150, 156] }
+  const table = document.createElement('table');
+  table.style.width = '100%';
+  table.style.borderCollapse = 'collapse';
+  table.style.fontSize = '12px';
+  
+  const thead = document.createElement('thead');
+  thead.innerHTML = `
+    <tr style="background: #0f969c; color: white;">
+      <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">#</th>
+      <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Phone Number</th>
+      <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Message</th>
+      <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Status</th>
+      <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Date & Time</th>
+    </tr>
+  `;
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+  allMessages.forEach((m, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="padding: 8px; border: 1px solid #ddd;">${i + 1}</td>
+      <td style="padding: 8px; border: 1px solid #ddd;">${m.phone}</td>
+      <td style="padding: 8px; border: 1px solid #ddd;">${m.message.length > 40 ? m.message.substring(0, 40) + '...' : m.message}</td>
+      <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: ${m.status.toLowerCase() === 'sent' ? '#10b981' : '#ef4444'};">${m.status}</td>
+      <td style="padding: 8px; border: 1px solid #ddd;">${new Date(m.date).toLocaleString()}</td>
+    `;
+    tbody.appendChild(tr);
   });
   
-  doc.save("WA_Message_History.pdf");
+  table.appendChild(tbody);
+  container.appendChild(table);
+
+  const opt = {
+    margin:       0.5,
+    filename:     'WA_Message_History.pdf',
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2 },
+    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(container).save();
 });
 
 // Init

@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -6,6 +7,24 @@ const cors = require('cors');
 const qrcode = require('qrcode');
 const path = require('path');
 const fs = require('fs');
+const mongoose = require('mongoose');
+
+const User = require('./models/User');
+const History = require('./models/History');
+const Message = require('./models/Message');
+
+// Prevent Node from crashing on unhandled Puppeteer errors
+process.on('uncaughtException', (err) => {
+  console.error('Caught exception: ', err);
+});
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+// Connect to MongoDB
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
 const app = express();
 app.use(cors());
@@ -27,48 +46,42 @@ let activeCampaign = {
   isRunning: false,
   numbers: [],
   templates: [],
-  delayMinutes: 1,
+  minDelay: 1,
+  maxDelay: 3,
   stats: { total: 0, sent: 0, failed: 0, remaining: 0, currentNum: 0 },
   logs: []
 };
 
-const historyFilePath = path.join(__dirname, 'history.json');
-const messagesFilePath = path.join(__dirname, 'messages_log.json');
-const usersFilePath = path.join(__dirname, 'users.json');
-
 // --- USER MANAGEMENT ---
-function getUsers() {
-  if (!fs.existsSync(usersFilePath)) return [];
-  return JSON.parse(fs.readFileSync(usersFilePath, 'utf8'));
-}
-
-function saveUsers(users) {
-  fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
-}
-
 function getSanitizedUserId(userId) {
   return userId.replace(/[^a-zA-Z0-9_-]/g, '_');
 }
 
-app.post('/api/register', (req, res) => {
-  const { name, username, password } = req.body;
-  const users = getUsers();
-  if (users.find(u => u.username === username)) {
-    return res.status(400).json({ error: 'Username already exists' });
+app.post('/api/register', async (req, res) => {
+  try {
+    const { name, username, password } = req.body;
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ error: 'Username already exists' });
+    }
+    await User.create({ name, username, password });
+    res.json({ success: true, username, name });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error during registration' });
   }
-  users.push({ name, username, password });
-  saveUsers(users);
-  res.json({ success: true, username, name });
 });
 
-app.post('/api/login', (req, res) => {
-  const { username, password } = req.body;
-  const users = getUsers();
-  const user = users.find(u => u.username === username && u.password === password);
-  if (!user) {
-    return res.status(401).json({ error: 'Invalid credentials' });
+app.post('/api/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const user = await User.findOne({ username, password });
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    res.json({ success: true, username: user.username, name: user.name });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error during login' });
   }
-  res.json({ success: true, username: user.username, name: user.name });
 });
 
 // --- WHATSAPP CLIENT ---
@@ -93,8 +106,7 @@ function initializeWhatsAppClient(userId, socket) {
   const sanitizedUserId = getSanitizedUserId(userId);
 
   client = new Client({
-    authStrategy: new LocalAuth({ clientId: sanitizedUserId, dataPath: './.wwebjs_auth' }),
-    webVersionCache: { type: 'none' },
+    authStrategy: new LocalAuth({ clientId: sanitizedUserId, dataPath: './.wwebjs_session' }),
     puppeteer: {
       headless: true,
       args: [
@@ -153,28 +165,17 @@ function broadcastStats(stats) {
   io.emit('stat-update', stats);
 }
 
-function saveHistory(campaignData) {
+async function saveHistory(campaignData) {
   try {
-    let history = [];
-    if (fs.existsSync(historyFilePath)) {
-      history = JSON.parse(fs.readFileSync(historyFilePath, 'utf8'));
-    }
-    history.unshift(campaignData);
-    fs.writeFileSync(historyFilePath, JSON.stringify(history, null, 2));
+    await History.create(campaignData);
   } catch (err) {
     console.error('Failed to save history', err);
   }
 }
 
-function saveMessageLog(logData) {
+async function saveMessageLog(logData) {
   try {
-    let logs = [];
-    if (fs.existsSync(messagesFilePath)) {
-      logs = JSON.parse(fs.readFileSync(messagesFilePath, 'utf8'));
-    }
-    logData.id = logData.id || Date.now().toString() + Math.floor(Math.random() * 1000);
-    logs.unshift(logData);
-    fs.writeFileSync(messagesFilePath, JSON.stringify(logs, null, 2));
+    await Message.create(logData);
   } catch (err) {
     console.error('Failed to save message log', err);
   }
@@ -188,8 +189,8 @@ io.on('connection', (socket) => {
     initializeWhatsAppClient(data.userId, socket);
   });
 
-  // If a campaign is running, immediately sync the client
-  if (activeCampaign.isRunning) {
+  // If a campaign exists, immediately sync the client (even if stopped)
+  if (activeCampaign && activeCampaign.numbers && activeCampaign.numbers.length > 0) {
     socket.emit('sync-state', activeCampaign);
   }
 
@@ -199,7 +200,7 @@ io.on('connection', (socket) => {
       return;
     }
 
-    const { numbers, templates, delayMinutes } = data;
+    const { numbers, templates, minDelay, maxDelay } = data;
     
     if (!isClientReady || !client) {
       socket.emit('log', { type: 'error', msg: 'WhatsApp client is not ready. Please authenticate first.' });
@@ -216,7 +217,8 @@ io.on('connection', (socket) => {
       isRunning: true,
       numbers,
       templates,
-      delayMinutes,
+      minDelay,
+      maxDelay,
       stats: { total: numbers.length, sent: 0, failed: 0, remaining: numbers.length, currentNum: 0 },
       logs: []
     };
@@ -232,6 +234,7 @@ io.on('connection', (socket) => {
 
       const number = numbers[i];
       const template = templates[Math.floor(Math.random() * templates.length)];
+      let messageFailed = false;
       
       try {
         const cleanNumber = number.replace(/\D/g, '');
@@ -252,6 +255,7 @@ io.on('connection', (socket) => {
         console.error('Failed to send message to ' + number, err);
         failedCount++;
         broadcastLog('error', `[${i+1}/${numbers.length}] Failed -> ${number}`);
+        messageFailed = true;
         
         saveMessageLog({
             user: activeUserId,
@@ -271,9 +275,16 @@ io.on('connection', (socket) => {
       });
 
       if (i < numbers.length - 1) {
-        const delayMs = delayMinutes * 60 * 1000;
-        broadcastLog('wait', `⏳ Waiting ${delayMinutes} minutes before next message...`);
-        await new Promise(resolve => setTimeout(resolve, Math.max(delayMs, 1000))); 
+        if (messageFailed) {
+          broadcastLog('wait', `⏭️ Skipping delay because previous message failed...`);
+          await new Promise(resolve => setTimeout(resolve, 1000)); // 1s safety delay
+        } else {
+          // Calculate random delay between min and max (inclusive)
+          const currentDelayMinutes = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
+          const delayMs = currentDelayMinutes * 60 * 1000;
+          broadcastLog('wait', `⏳ Waiting ${currentDelayMinutes} minutes before next message...`);
+          await new Promise(resolve => setTimeout(resolve, Math.max(delayMs, 1000))); 
+        }
       }
     }
 
@@ -287,7 +298,7 @@ io.on('connection', (socket) => {
       total: numbers.length,
       sent: sentCount,
       failed: failedCount,
-      delayMinutes
+      delayMinutes: `${minDelay}-${maxDelay}`
     });
 
     activeCampaign.isRunning = false;
@@ -312,14 +323,14 @@ io.on('connection', (socket) => {
           try {
             // Delete specific user's session folder
             const sanitizedUserId = getSanitizedUserId(data.userId);
-            fs.rmSync(`./.wwebjs_auth/session-${sanitizedUserId}`, { recursive: true, force: true });
+            fs.rmSync(`./.wwebjs_session/session-${sanitizedUserId}`, { recursive: true, force: true });
             console.log(`Cleared previous session data for ${data.userId}.`);
           } catch (e) {
             console.error('Failed to delete session folder, retrying in 2s...', e);
             setTimeout(() => {
               try { 
                 const sanitizedUserId = getSanitizedUserId(data.userId);
-                fs.rmSync(`./.wwebjs_auth/session-${sanitizedUserId}`, { recursive: true, force: true }); 
+                fs.rmSync(`./.wwebjs_session/session-${sanitizedUserId}`, { recursive: true, force: true }); 
               } 
               catch(e2) { console.error('Still failed.', e2); }
             }, 2000);
@@ -348,32 +359,37 @@ app.get('/history', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'history.html'));
 });
 
-app.get('/api/history', (req, res) => {
-  if (fs.existsSync(historyFilePath)) {
-    const data = fs.readFileSync(historyFilePath, 'utf8');
-    res.json(JSON.parse(data));
-  } else {
-    res.json([]);
+app.get('/api/history', async (req, res) => {
+  try {
+    const history = await History.find().sort({ date: -1 });
+    res.json(history);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch history' });
   }
 });
 
-app.get('/api/messages', (req, res) => {
-  if (fs.existsSync(messagesFilePath)) {
-    const data = fs.readFileSync(messagesFilePath, 'utf8');
-    res.json(JSON.parse(data));
-  } else {
-    res.json([]);
+app.get('/api/messages', async (req, res) => {
+  try {
+    const messages = await Message.find().sort({ date: -1 });
+    // Transform _id to id for frontend compatibility
+    const formattedMessages = messages.map(msg => {
+      const obj = msg.toObject();
+      obj.id = obj._id;
+      delete obj._id;
+      return obj;
+    });
+    res.json(formattedMessages);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch messages' });
   }
 });
 
-app.delete('/api/messages/:id', (req, res) => {
-  if (fs.existsSync(messagesFilePath)) {
-    let logs = JSON.parse(fs.readFileSync(messagesFilePath, 'utf8'));
-    logs = logs.filter(log => log.id !== req.params.id);
-    fs.writeFileSync(messagesFilePath, JSON.stringify(logs, null, 2));
+app.delete('/api/messages/:id', async (req, res) => {
+  try {
+    await Message.findByIdAndDelete(req.params.id);
     res.json({ success: true });
-  } else {
-    res.status(404).json({ error: 'File not found' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete message' });
   }
 });
 

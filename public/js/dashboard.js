@@ -10,7 +10,8 @@ socket.emit('init-wa', { userId: currentUser });
 
 // State
 let numbers = [];
-let templates = [
+const savedTemplates = localStorage.getItem('wa_templates');
+let templates = savedTemplates ? JSON.parse(savedTemplates) : [
   "Hi! Check out our latest offers 🎉",
   "Hello! We have something special for you today 🌟"
 ];
@@ -21,7 +22,8 @@ const fileInput = document.getElementById('file-input');
 const uploadStatus = document.getElementById('upload-status');
 const templatesContainer = document.getElementById('templates-container');
 const addTemplateBtn = document.getElementById('add-template-btn');
-const delayInput = document.getElementById('delay-input');
+const minDelayInput = document.getElementById('min-delay-input');
+const maxDelayInput = document.getElementById('max-delay-input');
 const startBtn = document.getElementById('start-btn');
 const startText = document.getElementById('start-text');
 const startIcon = document.getElementById('start-icon');
@@ -84,6 +86,7 @@ const renderTemplates = () => {
     textarea.style.cssText = 'flex: 1; background: #1f2937; border: 1px solid #374151; border-radius: 8px; padding: 15px; color: #e2e8f0; resize: none; height: 80px; font-family: inherit; box-sizing: border-box;';
     textarea.addEventListener('input', (e) => {
       templates[i] = e.target.value;
+      localStorage.setItem('wa_templates', JSON.stringify(templates));
     });
 
     const delBtn = document.createElement('button');
@@ -91,6 +94,7 @@ const renderTemplates = () => {
     delBtn.innerHTML = '<i data-lucide="trash-2"></i>';
     delBtn.addEventListener('click', () => {
       templates.splice(i, 1);
+      localStorage.setItem('wa_templates', JSON.stringify(templates));
       renderTemplates();
     });
 
@@ -103,6 +107,7 @@ const renderTemplates = () => {
 
 addTemplateBtn.addEventListener('click', () => {
   templates.push('');
+  localStorage.setItem('wa_templates', JSON.stringify(templates));
   renderTemplates();
 });
 
@@ -274,7 +279,8 @@ startBtn.addEventListener('click', () => {
   socket.emit('start-campaign', {
     numbers,
     templates: validTemplates,
-    delayMinutes: Number(delayInput.value)
+    minDelay: Number(minDelayInput.value),
+    maxDelay: Number(maxDelayInput.value)
   });
 });
 
@@ -293,32 +299,41 @@ if (disconnectWaBtn) {
 
 // Socket Events
 socket.on('sync-state', (state) => {
-  if (state.isRunning) {
+  if (state.numbers && state.numbers.length > 0) {
     numbers = state.numbers;
     templates = state.templates;
-    delayInput.value = state.delayMinutes;
+    if (state.minDelay) minDelayInput.value = state.minDelay;
+    if (state.maxDelay) maxDelayInput.value = state.maxDelay;
 
     statTotal.innerText = numbers.length;
     uploadStatus.innerHTML = `<span style="color: #fff; font-weight: bold;">[Restored Session]</span> <br/> <span style="color:#10b981;">✅ ${numbers.length} numbers loaded</span>`;
     renderTemplates();
 
-    setButtonToStop();
+    if (state.isRunning) {
+      setButtonToStop();
+    } else {
+      setButtonToStart();
+    }
 
     activityLog.innerHTML = '';
-    state.logs.forEach(log => {
-      appendLog(log.type, log.msg, log.time);
-    });
+    if (state.logs) {
+      state.logs.forEach(log => {
+        appendLog(log.type, log.msg, log.time);
+      });
+    }
 
     // Render current stats
-    const data = state.stats;
-    statTotal.innerText = data.total;
-    statSent.innerText = data.sent;
-    statFailed.innerText = data.failed;
-    statRemaining.innerText = data.remaining;
-    statCurrent.innerText = data.currentNum > 0 ? `#${data.currentNum}` : '-';
-    progressText.innerText = `${data.sent + data.failed}/${data.total}`;
-    const pct = data.total === 0 ? 0 : ((data.sent + data.failed) / data.total) * 100;
-    progressBar.style.width = `${pct}%`;
+    if (state.stats) {
+      const data = state.stats;
+      statTotal.innerText = data.total;
+      statSent.innerText = data.sent;
+      statFailed.innerText = data.failed;
+      statRemaining.innerText = data.remaining;
+      statCurrent.innerText = data.currentNum > 0 ? `#${data.currentNum}` : '-';
+      progressText.innerText = `${data.sent + data.failed}/${data.total}`;
+      const pct = data.total === 0 ? 0 : ((data.sent + data.failed) / data.total) * 100;
+      progressBar.style.width = `${pct}%`;
+    }
   }
 });
 

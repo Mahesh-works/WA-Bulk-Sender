@@ -1,0 +1,32 @@
+2026/05/04-23:03:44.690 124c Creating DB C:\Users\ASUS\Desktop\WA Automation\.wwebjs_session\session-innocent123_gmail_com\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb since it was missing.
+2026/05/04-23:03:44.694 124c Reusing MANIFEST C:\Users\ASUS\Desktop\WA Automation\.wwebjs_session\session-innocent123_gmail_com\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2026/05/04-23:04:04.934 124c Level-0 table #5: started
+2026/05/04-23:04:04.963 124c Level-0 table #5: 1091929 bytes OK
+2026/05/04-23:04:04.965 124c Delete type=0 #3
+2026/05/04-23:04:07.361 5308 Level-0 table #7: started
+2026/05/04-23:04:07.405 5308 Level-0 table #7: 1049528 bytes OK
+2026/05/04-23:04:07.408 5308 Delete type=0 #4
+2026/05/04-23:04:07.414 5308 Compacting 1@1 + 1@2 files
+2026/05/04-23:04:07.471 5308 Generated table #8@1: 24929 keys, 1037724 bytes
+2026/05/04-23:04:07.471 5308 Compacted 1@1 + 1@2 files => 1037724 bytes
+2026/05/04-23:04:07.472 5308 compacted to: files[ 0 0 1 0 0 0 0 ]
+2026/05/04-23:04:15.296 124c Level-0 table #10: started
+2026/05/04-23:04:15.321 124c Level-0 table #10: 993344 bytes OK
+2026/05/04-23:04:15.323 124c Delete type=2 #5
+2026/05/04-23:04:15.323 124c Delete type=0 #6
+2026/05/04-23:04:15.324 124c Delete type=2 #7
+2026/05/04-23:04:15.347 5308 Compacting 1@1 + 1@2 files
+2026/05/04-23:04:15.404 5308 Generated table #11@1: 34408 keys, 1501779 bytes
+2026/05/04-23:04:15.404 5308 Compacted 1@1 + 1@2 files => 1501779 bytes
+2026/05/04-23:04:15.405 5308 compacted to: files[ 0 0 1 0 0 0 0 ]
+2026/05/04-23:04:48.772 124c Level-0 table #13: started
+2026/05/04-23:04:48.799 124c Level-0 table #13: 1102368 bytes OK
+2026/05/04-23:04:48.802 124c Delete type=2 #8
+2026/05/04-23:04:48.802 124c Delete type=0 #9
+2026/05/04-23:04:48.802 124c Delete type=2 #10
+2026/05/04-23:04:48.805 124c Compacting 1@1 + 1@2 files
+2026/05/04-23:04:48.865 124c Generated table #14@1: 43561 keys, 1815140 bytes
+2026/05/04-23:04:48.865 124c Compacted 1@1 + 1@2 files => 1815140 bytes
+2026/05/04-23:04:48.865 124c compacted to: files[ 0 0 1 0 0 0 0 ]
+2026/05/04-23:04:48.866 124c Delete type=2 #11
+2026/05/04-23:04:48.866 124c Delete type=2 #13

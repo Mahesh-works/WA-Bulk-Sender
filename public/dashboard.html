@@ -142,8 +142,10 @@
             </h3>
 
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 32px; background: rgba(0,0,0,0.1); padding: 16px; border-radius: 12px; border: 1px solid var(--glass-border);">
-              <span style="color: var(--text-dark); font-size: 14px; font-weight: 500;">Delay between messages:</span>
-              <input type="number" id="delay-input" value="1" class="glass-input" style="width: 80px; text-align: center; padding: 8px;">
+              <span style="color: var(--text-dark); font-size: 14px; font-weight: 500;">Delay:</span>
+              <input type="number" id="min-delay-input" value="1" min="1" class="glass-input" style="width: 60px; text-align: center; padding: 8px;">
+              <span style="color: var(--text-muted); font-size: 14px;">to</span>
+              <input type="number" id="max-delay-input" value="3" min="1" class="glass-input" style="width: 60px; text-align: center; padding: 8px;">
               <span style="color: var(--text-muted); font-size: 14px;">minutes</span>
             </div>
 
